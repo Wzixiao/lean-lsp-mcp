@@ -213,6 +213,7 @@ def diagnostic_messages(ctx: Context, file_path: str) -> List[str] | str:
     update_file(ctx, rel_path)
 
     client: LeanLSPClient = ctx.request_context.lifespan_context.client
+    client.get_diagnostics(rel_path)
     diagnostics = client.get_diagnostics(rel_path)
     return format_diagnostics(diagnostics)
 
