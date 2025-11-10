@@ -639,8 +639,8 @@ def leandex(ctx: Context, query: str, num_results: int = 5) -> List[Dict] | str:
         params = {
             "q": query,
             "limit": num_results,
-            "generate_query": True, # 使用LLM生成新的查询
-            "analyze_result": True, # 使用LLM分析语义检索结果，找到最接近查询的结果
+            "generate_query": False, # 使用LLM生成新的查询
+            "analyze_result": False, # 使用LLM分析语义检索结果，找到最接近查询的结果
         }
         headers = {
             "accept": "text/event-stream",
