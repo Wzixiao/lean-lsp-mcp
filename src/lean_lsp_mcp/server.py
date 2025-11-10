@@ -9,6 +9,7 @@ import urllib
 import json
 import functools
 import subprocess
+import requests
 from pathlib import Path
 
 from mcp.server.fastmcp import Context, FastMCP
@@ -65,6 +66,7 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
             file_content_hashes={},
             rate_limit={
                 "leansearch": [],
+                "leandex": [],
                 "loogle": [],
                 "lean_state_search": [],
                 "hammer_premise": [],
@@ -627,6 +629,42 @@ def leansearch(ctx: Context, query: str, num_results: int = 5) -> List[Dict] | s
         return results
     except Exception as e:
         return f"leansearch error:\n{str(e)}"
+
+@mcp.tool("lean_leandex")
+# @rate_limited("leandex", max_requests=3, per_seconds=30)
+def leandex(ctx: Context, query: str, num_results: int = 5) -> List[Dict] | str:
+    try:
+
+        url = "https://leandex.projectnumina.ai/api/v1/search"
+        params = {
+            "q": query,
+            "limit": num_results,
+            "generate_query": False, # 使用LLM生成新的查询
+            "analyze_result": False, # 使用LLM分析语义检索结果，找到最接近查询的结果
+        }
+        headers = {
+            "accept": "text/event-stream",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",
+        }
+
+        with requests.get(url, headers=headers, params=params, stream=True) as resp:
+            for line in resp.iter_lines(decode_unicode=True):
+                if not line:
+                    continue
+
+                if line.startswith("data:"):
+                    data = line.removeprefix("data:").strip()
+
+            data = json.loads(data)
+            results = data["data"]["search_results"]
+
+            for result in results:
+                result["primary_declaration"] = result["primary_declaration"]["lean_name"]
+                
+            return results
+
+    except Exception as e:
+        return f"leandex error:\n{str(e)}"
 
 
 @mcp.tool("lean_loogle")
