@@ -154,6 +154,7 @@ def rate_limited(category: str, max_requests: int, per_seconds: int):
                 if timestamp > current_time - per_seconds
             ]
             if len(rate_limit[category]) >= max_requests:
+                logger.warning(f"🚫 {func.__name__}: Rate limited") 
                 return f"Tool limit exceeded: {max_requests} requests per {per_seconds} s. Try again later."
             rate_limit[category].append(current_time)
             return func(*args, **kwargs)
